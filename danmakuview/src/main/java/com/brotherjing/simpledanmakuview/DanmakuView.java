@@ -38,19 +38,19 @@ public class DanmakuView extends SurfaceView implements SurfaceHolder.Callback,R
     final String TAG = "DanmakuView";
 
     final int MSPF = 25;
-    final int DANMAKU_TYPE_COUNT = 3;//弹幕种类数量
+    final int DANMAKU_TYPE_COUNT = 3;
     final int DEFAULT_TEXT_SIZE = 18;
 
     //int slots[][];//
-    DanmakuAnim danmakuSlots[][];//轨道状态，null表示空闲，占用时存放占用该轨道的弹幕的DanmakuAnim对象
-    int alt_slot;//轨道全满时还要放弹幕的备选轨道
+    DanmakuAnim danmakuSlots[][];
+    int alt_slot;//when all slots are full, choose an alternative one
 
     int screenWidth;
     int screenHeight;
 
-    int textCount;//当前可见弹幕数量
+    int textCount;//current visible danmaku count
     int defaultHeight;
-    int MAX_SLOT_PORT;//最大弹幕轨道数
+    int MAX_SLOT_PORT;
     int MAX_SLOT_LAND;
     int MAX_SLOT;
 
@@ -60,8 +60,6 @@ public class DanmakuView extends SurfaceView implements SurfaceHolder.Callback,R
     SurfaceHolder mHolder;
     Canvas mCanvas;
 
-    //绘制文字用的paint
-    //TODO:各种颜色的paint
     TextPaint textPaint;
     Paint clearPaint;
 
@@ -116,7 +114,7 @@ public class DanmakuView extends SurfaceView implements SurfaceHolder.Callback,R
             danmakuSlots[0][i] = danmakuSlots[1][i] = danmakuSlots[2][i] = null;//刚开始轨道都空闲
         }
 
-        //初始化画笔
+        //initialize paint
         textPaint = new TextPaint();
         textPaint.setFlags(Paint.ANTI_ALIAS_FLAG);
         textPaint.setColor(Color.WHITE);
@@ -135,18 +133,15 @@ public class DanmakuView extends SurfaceView implements SurfaceHolder.Callback,R
 
     public void addDanmaku(Danmaku d){
 
-        //测量文字宽度
+        //measure the width of text
         float width = textPaint.measureText(d.getText());
 
         DanmakuAnim anim = new DanmakuAnim(d,screenWidth,0-width);
 
-        //为当前弹幕获取一个空闲的轨道
+        //select an available slot for this danmaku
         int slot = getNextAvailableSlot(d,anim);
 
-        //根据轨道高度设置弹幕y坐标
         anim.setHeight(slot*defaultHeight);
-
-        //Log.i("yj","start = "+screenWidth+", end = "+(0-width)+", height = "+(slot*defaultHeight));
 
         animList.add(anim);
 
@@ -166,7 +161,7 @@ public class DanmakuView extends SurfaceView implements SurfaceHolder.Callback,R
     private int getNextAvailableSlot(Danmaku d,DanmakuAnim anim){
         DanmakuAnim old_anim;
         int shifting = Danmaku.DanmakuType.SHIFTING.ordinal();
-        int type = d.getType().ordinal();//当前弹幕的类型
+        int type = d.getType().ordinal();
         for(int i=0;i<MAX_SLOT;++i){
             if(danmakuSlots[type][i]!=null){
                 if(type!=shifting)continue;
@@ -181,7 +176,7 @@ public class DanmakuView extends SurfaceView implements SurfaceHolder.Callback,R
                 return i;
             }
         }
-        //全都满了，随便找个位置放吧
+        //choose a random slot
         alt_slot = (++alt_slot)%MAX_SLOT;
         danmakuSlots[type][alt_slot] = anim;
         return alt_slot;
@@ -192,7 +187,6 @@ public class DanmakuView extends SurfaceView implements SurfaceHolder.Callback,R
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
-        //人工播放动画
         isRunning = true;
         handler.postDelayed(this,MSPF);
     }
@@ -247,7 +241,6 @@ public class DanmakuView extends SurfaceView implements SurfaceHolder.Callback,R
 
     void drawText(DanmakuAnim anim){
         anim.update();
-        //在原来的y上又加一点，不然被挡住。。
         mCanvas.drawText(anim.getText(),anim.getX(),anim.getY()+defaultHeight,textPaint);
     }
 
