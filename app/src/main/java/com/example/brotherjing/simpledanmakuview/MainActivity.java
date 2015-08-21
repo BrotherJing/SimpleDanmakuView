@@ -13,7 +13,7 @@ public class MainActivity extends Activity{
     private final int HANDLER_SEND_MESSAGE = 1;
     private final int STRING_CNT = 3;
 
-    private String[] strings = {"2333","wwwwwwwwwwww","666666"};
+    private String[] strings = {"23333333333333333333333","wwwwwwwwwwwwwwwwwwwwwwwww","666666666666666666666666"};
 
     private Thread thread;
     private DanmakuView danmakuView;
@@ -23,14 +23,14 @@ public class MainActivity extends Activity{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         danmakuView = (DanmakuView)findViewById(R.id.danmaku_view);
-        danmakuView.init(getResources().getDisplayMetrics().widthPixels,getResources().getDisplayMetrics().heightPixels);
+        //danmakuView.init(getResources().getDisplayMetrics().widthPixels,getResources().getDisplayMetrics().heightPixels);
         thread = new Thread(new Runnable() {
             @Override
             public void run() {
                 while(true){
                     try {
                         handler.sendEmptyMessage(HANDLER_SEND_MESSAGE);
-                        Thread.sleep(200);
+                        Thread.sleep(150);
                     } catch (Exception e) {
                         e.printStackTrace();
                         break;
