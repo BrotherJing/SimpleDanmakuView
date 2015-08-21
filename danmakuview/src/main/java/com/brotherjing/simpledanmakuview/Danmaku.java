@@ -8,9 +8,9 @@ import android.graphics.Color;
  */
 public class Danmaku {
 
-    final int WHITE = Color.WHITE;
-    final int RED = Color.RED;
-    final int GREEN = Color.GREEN;
+    final static int WHITE = Color.WHITE;
+    final static int RED = Color.RED;
+    final static int GREEN = Color.GREEN;
 
     public enum DanmakuType{
         SHIFTING,
@@ -18,39 +18,44 @@ public class Danmaku {
         FLOATING_BOTTOM
     }
 
+    public static enum DanmakuSpeed{
+        NORMAL,
+        FAST,
+        SLOW
+    }
+
     String text;
     int color;
-    int velocity;
+    DanmakuSpeed speed;
     boolean sentByUser;
     DanmakuType type;
 
     public Danmaku(String txt){
-        this.text = txt;
-        velocity = 10000;
-        color = WHITE;
-        type = DanmakuType.SHIFTING;
+        this(txt,Danmaku.WHITE,false,DanmakuType.SHIFTING,DanmakuSpeed.NORMAL);
     }
 
     public Danmaku(String txt,boolean sentByUser){
-        this(txt);
-        this.sentByUser = sentByUser;
+        this(txt,Danmaku.WHITE,sentByUser,DanmakuType.SHIFTING,DanmakuSpeed.NORMAL);
     }
 
     public Danmaku(String txt,int color,boolean sentByUser){
-        this(txt,sentByUser);
-        this.color = color;
+        this(txt,color,sentByUser,DanmakuType.SHIFTING,DanmakuSpeed.NORMAL);
     }
 
     public Danmaku(String txt,int color,boolean sentByUser,DanmakuType type){
-        this(txt,color,sentByUser);
+        this(txt,color,sentByUser,type,DanmakuSpeed.NORMAL);
+    }
+
+    public Danmaku(String txt,int color,boolean sentByUser,DanmakuType type,DanmakuSpeed speed){
+        this.text = txt;
+        this.color = color;
+        this.sentByUser = sentByUser;
         this.type = type;
+        this.speed = speed;
     }
 
     public void setText(String txt){this.text = txt;}
     public String getText(){return text;}
-
-    public void setVelocity(int v){this.velocity = v;}
-    public int getVelocity(){return velocity;}
 
     public void setColor(int color){this.color = color;}
     public int getColor(){return color;}

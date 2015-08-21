@@ -1,11 +1,15 @@
 package com.brotherjing.simpledanmakuview;
 
+import com.brotherjing.simpledanmakuview.Danmaku.DanmakuSpeed;
+
 /**
  * Created by Administrator on 2014/12/7 0007.
  */
 public class DanmakuAnim {
 
-    final int FRAME_COUNT = 400;
+    final int FRAME_COUNT_NORMAL = 400;
+    final int FRAME_COUNT_FAST = 200;
+    final int FRAME_COUNT_SLOW = 800;
 
     private Danmaku danmaku;
     private float start;
@@ -14,6 +18,8 @@ public class DanmakuAnim {
     private float y;
     private float width;
     private int progress;
+    private float step;
+    private int frameCount;
 
     private boolean isFinished;
     //private OnAnimFinishListener listener;
@@ -26,14 +32,27 @@ public class DanmakuAnim {
         this.width = width;
         progress = 0;
         isFinished = false;
+        switch (d.speed){
+            case NORMAL:
+                frameCount = FRAME_COUNT_NORMAL;
+                break;
+            case FAST:
+                frameCount = FRAME_COUNT_FAST;
+                break;
+            case SLOW:
+                frameCount = FRAME_COUNT_SLOW;
+                break;
+        }
+        step = (end-start)*1f/ frameCount;
     }
 
     public boolean update(){
-        if(++progress==FRAME_COUNT){
+        if(++progress== frameCount){
             isFinished = true;
             return false;
         }
-        x = start+(end-start)*1f*progress/FRAME_COUNT;
+        //x = start+(end-start)*1f*progress/frameCount;
+        x += step;
         return true;
     }
 
