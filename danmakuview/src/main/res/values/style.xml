@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="danmakuview">
+        <attr name="danmakuview_shifting_only" format="boolean"/>
+    </declare-styleable>
+
+</resources>

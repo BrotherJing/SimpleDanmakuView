@@ -11,6 +11,7 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.brotherjing.simpledanmakuview.*;
 
@@ -92,8 +93,15 @@ public class MainActivity extends Activity{
         pause.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(danmakuView.isRunning())danmakuView.pause();
+                if (danmakuView.isRunning()) danmakuView.pause();
                 else danmakuView.resume();
+            }
+        });
+
+        danmakuView.setOnDanmakuClickListener(new DanmakuView.OnDanmakuClickListener() {
+            @Override
+            public void onDanmakuClick(Danmaku danmaku) {
+                Toast.makeText(MainActivity.this,danmaku.getText(),Toast.LENGTH_SHORT).show();
             }
         });
     }
