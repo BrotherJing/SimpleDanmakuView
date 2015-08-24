@@ -13,6 +13,7 @@ import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
@@ -180,6 +181,10 @@ public class DanmakuView extends SurfaceView implements SurfaceHolder.Callback,R
         handler.post(this);
     }
 
+    public boolean isRunning(){
+        return isRunning;
+    }
+
     private int getNextAvailableSlot(DanmakuAnim anim){
         Danmaku d = anim.getDanmaku();
         DanmakuAnim old_anim;
@@ -252,11 +257,6 @@ public class DanmakuView extends SurfaceView implements SurfaceHolder.Callback,R
             Iterator<DanmakuAnim> iterator = animList.iterator();
             while(iterator.hasNext()){
                 DanmakuAnim anim = iterator.next();
-                /*if(anim.isFinished()){
-                    iterator.remove();
-                }else{
-                    drawText(anim);
-                }*/
                 if(!anim.update()){
                     iterator.remove();
                 }else{
@@ -286,5 +286,41 @@ public class DanmakuView extends SurfaceView implements SurfaceHolder.Callback,R
     public void setMSPF(int mspf){
         if(mspf<0)return;
         this.MSPF = mspf;
+    }
+
+    private OnDanmakuClickListener onDanmakuClickListener;
+
+    public interface OnDanmakuClickListener{
+        void onDanmakuClick(Danmaku danmaku);
+    }
+
+    public void setOnDanmakuClickListener(OnDanmakuClickListener listener){
+        this.onDanmakuClickListener = listener;
+    }
+
+    float downX,downY;
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        switch(event.getAction()){
+            case MotionEvent.ACTION_DOWN:
+                downX = event.getX();
+                downY = event.getY();
+                break;
+            case MotionEvent.ACTION_UP:
+                if(Math.abs(event.getX()-downX)<6&&Math.abs(event.getY()-downY)<6){
+                    //click action
+                    Log.i("yj","down x,y is "+downX+" "+downY);
+                    performClickOnDanmaku();
+                }
+                break;
+        }
+        //return super.onTouchEvent(event);
+        return true;
+    }
+
+    private void performClickOnDanmaku(){
+        int slot = (int)(downY/defaultHeight);
+        Log.i("yj","click on slot"+slot);
+
     }
 }

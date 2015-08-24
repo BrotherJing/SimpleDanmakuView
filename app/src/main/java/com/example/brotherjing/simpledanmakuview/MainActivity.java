@@ -7,6 +7,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -24,6 +25,7 @@ public class MainActivity extends Activity{
     private Thread thread;
     private LinearLayout ll;
     private SeekBar sb1,sb2;
+    private Button pause;
     private DanmakuView danmakuView;
 
     @Override
@@ -33,6 +35,7 @@ public class MainActivity extends Activity{
         ll = (LinearLayout)findViewById(R.id.ll);
         sb1 = (SeekBar)findViewById(R.id.sbHeight);
         sb2 = (SeekBar)findViewById(R.id.sbSpeed);
+        pause = (Button)findViewById(R.id.btn_pause);
         danmakuView = (DanmakuView)findViewById(R.id.danmaku_view);
         danmakuView.setMode(DanmakuView.MODE_NO_OVERDRAW | DanmakuView.MODE_USE_DANMAKU_BUFFER);
         thread = new Thread(new Runnable() {
@@ -55,7 +58,7 @@ public class MainActivity extends Activity{
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 ViewGroup.LayoutParams params = ll.getLayoutParams();
-                params.height = progress+100;
+                params.height = progress + 100;
                 ll.setLayoutParams(params);
                 ll.requestLayout();
             }
@@ -84,6 +87,13 @@ public class MainActivity extends Activity{
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
 
+            }
+        });
+        pause.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(danmakuView.isRunning())danmakuView.pause();
+                else danmakuView.resume();
             }
         });
     }

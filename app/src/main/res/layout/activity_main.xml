@@ -25,6 +25,12 @@
             android:max="100"
             android:progress="20"/>
 
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/btn_pause"
+            android:text="Pause/Resume"/>
+
     </LinearLayout>
 
     <com.brotherjing.simpledanmakuview.DanmakuView
