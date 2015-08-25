@@ -2,6 +2,7 @@ package com.brotherjing.simpledanmakuview;
 
 import android.content.Context;
 import android.content.res.Configuration;
+import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -30,14 +31,14 @@ public class DanmakuView extends SurfaceView implements SurfaceHolder.Callback,R
 
     public static final int MODE_NO_OVERDRAW = 0x01;
     public static final int MODE_USE_DANMAKU_BUFFER = 0x02;
+    public static final int MODE_MULTIPLE_TYPE = 0x04;
 
     final int MSPF_DEFAULT = 20;
     final int DANMAKU_TYPE_COUNT = 3;
     final int DEFAULT_TEXT_SIZE = 18;
     final int MAX_BUFFER_SIZE = 100;
 
-    //int slots[][];//
-    DanmakuAnim danmakuSlots[][];
+    LinkedList<DanmakuAnim> danmakuSlots[][];
     int alt_slot;//when all slots are full, choose an alternative one
 
     int screenWidth;
@@ -49,11 +50,13 @@ public class DanmakuView extends SurfaceView implements SurfaceHolder.Callback,R
     int MAX_SLOT_LAND;
     int MAX_SLOT;
     int MSPF;
+    int danmaku_type_count;
 
     int mode_flag;//overdraw? use buffer?
     boolean first_measure;
+    boolean shifting_only;
 
-    LinkedList<DanmakuAnim> animList;
+    //LinkedList<DanmakuAnim> animList;
     LinkedList<DanmakuAnim> animBuffer;
 
     Context context;
@@ -81,14 +84,18 @@ public class DanmakuView extends SurfaceView implements SurfaceHolder.Callback,R
         setKeepScreenOn(true);
 
         first_measure = true;
-        //initSize(context.getResources().getDisplayMetrics().widthPixels, context.getResources().getDisplayMetrics().heightPixels);
+        shifting_only = true;
+        danmaku_type_count = 1;
+        /*TypedArray ta = context.obtainStyledAttributes(attrs,R.styleable.danmakuview);
+        shifting_only = ta.getBoolean(R.styleable.danmakuview_danmakuview_shifting_only,true);*/
+
         initData();
     }
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        Log.i(TAG,"measure "+getMeasuredHeight()+" "+getMeasuredWidth());
+        //Log.i(TAG,"measure "+getMeasuredHeight()+" "+getMeasuredWidth());
         initSize(getMeasuredWidth(), getMeasuredHeight());
     }
 
@@ -100,21 +107,25 @@ public class DanmakuView extends SurfaceView implements SurfaceHolder.Callback,R
         if(first_measure) {
             first_measure = false;
             MAX_SLOT = (screenHeight-dp2px(50))/defaultHeight;
-            danmakuSlots = new DanmakuAnim[DANMAKU_TYPE_COUNT][MAX_SLOT];
-            for (int i = 0; i < MAX_SLOT; ++i) {
-                danmakuSlots[0][i] = danmakuSlots[1][i] = danmakuSlots[2][i] = null;//刚开始轨道都空闲
+            danmakuSlots = new LinkedList[danmaku_type_count][];
+            for(int j=0;j<danmaku_type_count;++j) {
+                danmakuSlots[j] = new LinkedList[MAX_SLOT];
+                for (int i = 0; i < MAX_SLOT; ++i)
+                    danmakuSlots[j][i] = new LinkedList<>();
             }
         }else{
             int MAX_SLOT_NEW = (screenHeight-dp2px(50))/defaultHeight;
             int min = Math.min(MAX_SLOT_NEW,MAX_SLOT);
-            DanmakuAnim[][] danmakuSlotsNew = new DanmakuAnim[DANMAKU_TYPE_COUNT][MAX_SLOT_NEW];
-            for (int i = 0; i < min; ++i) {
-                danmakuSlotsNew[0][i]=danmakuSlots[0][i];
-                danmakuSlotsNew[1][i]=danmakuSlots[1][i];
-                danmakuSlotsNew[2][i]=danmakuSlots[2][i];
-            }
-            for(int i=min;i<MAX_SLOT_NEW;++i){
-                danmakuSlotsNew[0][i] = danmakuSlotsNew[1][i] = danmakuSlotsNew[2][i] = null;
+            //DanmakuAnim[][] danmakuSlotsNew = new DanmakuAnim[DANMAKU_TYPE_COUNT][MAX_SLOT_NEW];
+            LinkedList<DanmakuAnim> danmakuSlotsNew[][] = new LinkedList[danmaku_type_count][];
+            for(int j=0;j<danmaku_type_count;++j) {
+                danmakuSlotsNew[j] = new LinkedList[MAX_SLOT_NEW];
+                for (int i = 0; i < min; ++i) {
+                    danmakuSlotsNew[j][i] = danmakuSlots[j][i];
+                }
+                for (int i = min; i < MAX_SLOT_NEW; ++i) {
+                    danmakuSlotsNew[j][i] = new LinkedList<>();
+                }
             }
             MAX_SLOT = MAX_SLOT_NEW;
             danmakuSlots = danmakuSlotsNew;
@@ -136,7 +147,7 @@ public class DanmakuView extends SurfaceView implements SurfaceHolder.Callback,R
         clearPaint = new Paint();
         clearPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
 
-        animList = new LinkedList<DanmakuAnim>();
+        //animList = new LinkedList<DanmakuAnim>();
         animBuffer = new LinkedList<DanmakuAnim>();
     }
 
@@ -152,6 +163,8 @@ public class DanmakuView extends SurfaceView implements SurfaceHolder.Callback,R
 
         DanmakuAnim anim = new DanmakuAnim(d,screenWidth,-width,width);
 
+        if(shifting_only&&d.getType()!=Danmaku.DanmakuType.SHIFTING)return false;
+
         return addDanmakuAnim(anim,false);
     }
 
@@ -166,7 +179,7 @@ public class DanmakuView extends SurfaceView implements SurfaceHolder.Callback,R
             return true;
         }
         anim.setHeight(slot * defaultHeight);
-        animList.add(anim);
+        //animList.add(anim);
         ++textCount;
         return true;
     }
@@ -191,16 +204,16 @@ public class DanmakuView extends SurfaceView implements SurfaceHolder.Callback,R
         int shifting = Danmaku.DanmakuType.SHIFTING.ordinal();
         int type = d.getType().ordinal();
         for(int i=0;i<MAX_SLOT;++i){
-            if(danmakuSlots[type][i]!=null){
+            if(!danmakuSlots[type][i].isEmpty()){//slot already taken
                 if(type!=shifting)continue;
-                old_anim = danmakuSlots[type][i];
+                old_anim = danmakuSlots[type][i].getLast();
                 if(old_anim.getX()<screenWidth-old_anim.getWidth()-100){
-                    danmakuSlots[type][i] = anim;
+                    danmakuSlots[type][i].addLast(anim);
                     return i;
                 }
             }
             else{
-                danmakuSlots[type][i] = anim;
+                danmakuSlots[type][i].addLast(anim);
                 return i;
             }
         }
@@ -208,7 +221,7 @@ public class DanmakuView extends SurfaceView implements SurfaceHolder.Callback,R
         if((mode_flag&MODE_NO_OVERDRAW)!=0)return -1;
         //choose a random slot
         alt_slot = (++alt_slot)%MAX_SLOT;
-        danmakuSlots[type][alt_slot] = anim;
+        danmakuSlots[type][alt_slot].addLast(anim);
         return alt_slot;
     }
 
@@ -254,17 +267,22 @@ public class DanmakuView extends SurfaceView implements SurfaceHolder.Callback,R
         if(mCanvas!=null){
             mCanvas.drawPaint(clearPaint);
 
-            Iterator<DanmakuAnim> iterator = animList.iterator();
-            while(iterator.hasNext()){
-                DanmakuAnim anim = iterator.next();
-                if(!anim.update()){
-                    iterator.remove();
-                }else{
-                    mCanvas.drawText(anim.getText(),anim.getX(),anim.getY()+defaultHeight,textPaint);
+            for(int i=0;i<danmaku_type_count;++i) {
+                for(int j=0;j<MAX_SLOT;++j) {
+                    Iterator<DanmakuAnim> iterator = danmakuSlots[i][j].iterator();
+                    while (iterator.hasNext()) {
+                        DanmakuAnim anim = iterator.next();
+                        if (!anim.update()) {
+                            iterator.remove();
+                        } else {
+                            mCanvas.drawText(anim.getText(), anim.getX(), anim.getY() + defaultHeight, textPaint);
+                        }
+                    }
                 }
             }
             mHolder.unlockCanvasAndPost(mCanvas);
         }
+
     }
 
     private int dp2px(int dp){
@@ -277,6 +295,13 @@ public class DanmakuView extends SurfaceView implements SurfaceHolder.Callback,R
 
     public void setMode(int mode){
         this.mode_flag = mode;
+        if((mode&MODE_MULTIPLE_TYPE)==0){
+            shifting_only = true;
+            danmaku_type_count = 1;
+        }else{
+            shifting_only = false;
+            danmaku_type_count = DANMAKU_TYPE_COUNT;
+        }
     }
 
     private boolean isBufferFull(){
@@ -309,7 +334,7 @@ public class DanmakuView extends SurfaceView implements SurfaceHolder.Callback,R
             case MotionEvent.ACTION_UP:
                 if(Math.abs(event.getX()-downX)<6&&Math.abs(event.getY()-downY)<6){
                     //click action
-                    Log.i("yj","down x,y is "+downX+" "+downY);
+                    //Log.i("yj","down x,y is "+downX+" "+downY);
                     performClickOnDanmaku();
                 }
                 break;
@@ -320,7 +345,16 @@ public class DanmakuView extends SurfaceView implements SurfaceHolder.Callback,R
 
     private void performClickOnDanmaku(){
         int slot = (int)(downY/defaultHeight);
-        Log.i("yj","click on slot"+slot);
-
+        //Log.i("yj","click on slot"+slot);
+        if(onDanmakuClickListener==null)return;
+        for(int j=0;j<danmaku_type_count;++j){
+            for(DanmakuAnim anim:danmakuSlots[j][slot]){
+                if(anim.getX()<downX&&anim.getX()+anim.getWidth()>downX){
+                    onDanmakuClickListener.onDanmakuClick(anim.getDanmaku());
+                    return;
+                }
+            }
+        }
     }
+
 }
