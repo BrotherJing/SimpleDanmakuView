@@ -25,7 +25,7 @@ public class MainActivity extends Activity{
 
     private Thread thread;
     private LinearLayout ll;
-    private SeekBar sb1,sb2;
+    private SeekBar sb1,sb2,sb3;
     private Button pause;
     private DanmakuView danmakuView;
 
@@ -36,6 +36,7 @@ public class MainActivity extends Activity{
         ll = (LinearLayout)findViewById(R.id.ll);
         sb1 = (SeekBar)findViewById(R.id.sbHeight);
         sb2 = (SeekBar)findViewById(R.id.sbSpeed);
+        sb3 = (SeekBar)findViewById(R.id.sbTextSize);
         pause = (Button)findViewById(R.id.btn_pause);
         danmakuView = (DanmakuView)findViewById(R.id.danmaku_view);
         danmakuView.setMode(DanmakuView.MODE_NO_OVERDRAW | DanmakuView.MODE_USE_DANMAKU_BUFFER);
@@ -90,6 +91,22 @@ public class MainActivity extends Activity{
 
             }
         });
+        sb3.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                danmakuView.setTextSize((int) (18 + (progress - 50) / 10));
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
         pause.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -101,7 +118,7 @@ public class MainActivity extends Activity{
         danmakuView.setOnDanmakuClickListener(new DanmakuView.OnDanmakuClickListener() {
             @Override
             public void onDanmakuClick(Danmaku danmaku) {
-                Toast.makeText(MainActivity.this,danmaku.getText(),Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this,danmaku.getId()+"",Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -112,7 +129,9 @@ public class MainActivity extends Activity{
             super.handleMessage(msg);
             switch (msg.what){
                 case HANDLER_SEND_MESSAGE:
-                    danmakuView.addDanmaku(new Danmaku(strings[(int)(Math.random()*3)]));
+                    Danmaku danmaku = new Danmaku(strings[(int)(Math.random()*3)],(int)System.currentTimeMillis());
+                    danmaku.setSpeed(Danmaku.DanmakuSpeed.FAST);
+                    danmakuView.addDanmaku(danmaku);
                     break;
                 default:
                     break;

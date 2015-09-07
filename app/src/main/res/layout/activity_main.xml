@@ -26,6 +26,13 @@
             android:max="100"
             android:progress="20"/>
 
+        <SeekBar
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/sbTextSize"
+            android:max="100"
+            android:progress="18"/>
+
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
