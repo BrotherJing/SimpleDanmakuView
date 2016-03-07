@@ -1,3 +1,6 @@
+[![star this repo](http://githubbadges.com/star.svg?user=Brotherjing&repo=SimpleDanmakuView&style=flat)](https://github.com/Brotherjing/SimpleDanmakuView)
+[![fork this repo](http://githubbadges.com/fork.svg?user=Brotherjing&repo=SimpleDanmakuView&style=flat)](https://github.com/Brotherjing/SimpleDanmakuView/fork)
+
 you can use this in your Android Studio project by adding
 ```
 compile 'com.brotherjing:danmakuview:1.0.2'
